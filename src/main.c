@@ -1,29 +1,27 @@
-#include <stdio.h>
-#include <string.h>
-#include <unistd.h>
+#include <includes/codexion.h>
 
-typedef enum e_scheduler {
-    FIFO,
-    EDF
-} t_scheduler;
-
-typedef struct s_params
-{
-    int n_coders;
-    long time_to_burnout;
-    long time_to_debug;
-    long time_to_refactor;
-    int n_compiles_required;
-    long dongle_cooldown;
-    t_scheduler scheduler;
-} t_params;
+char ARG_ERR_MESSAGE[] = "Insufficient number of aruguments\n";
+char PARSE_ERR_MESSAGE[] = "Invalid arguments included\n";
 
 int main(int argc, char** argv) 
 {
-    if (argc != 8) {
-        char err_message[] = "Insufficient number of arguments\n";
-        write(1, err_message, strlen(err_message));
+    if (argc != 9) {
+        write(1, ARG_ERR_MESSAGE, strlen(ARG_ERR_MESSAGE));
+    }
+    t_params params;
+    if (parse_arg(argc, argv, &params) != 0)
+    {
+        write(1, PARSE_ERR_MESSAGE, strlen(PARSE_ERR_MESSAGE));
     }
 
+    printf("%ld\n", params.n_coders);
+    printf("%ld\n", params.time_to_burnout);
+    printf("%ld\n", params.time_to_debug);
+    printf("%ld\n", params.time_to_refactor);
+    printf("%ld\n", params.n_compiles_required);
+    printf("%ld\n", params.dongle_cooldown);
+    printf("%d\n", params.scheduler);
+
+    
     return 0;
 }

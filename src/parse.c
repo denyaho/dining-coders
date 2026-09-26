@@ -1,7 +1,4 @@
-#include <stdio.h>
 #include <includes/codexion.h>
-#include <stdlib.h>
-#include <limits.h>
 
 
 int _is_valid_number(char str[])
@@ -16,6 +13,7 @@ int _is_valid_number(char str[])
         if (str[i] < '0' || str[i] > '9'){
             return 1;
         }
+        i++;
     }
     return 0;
 }
@@ -32,13 +30,39 @@ long _ft_strtol(char str[])
             return -1;
         }
         num = num * 10 + (str[i] - '0');
+        i++;
     }
     return num;
 }
 
-int _parse_scheduler(char str[]);
+int _parse_scheduler(char str[], t_scheduler *scheduler) {
+    if (strcmp(str, "fifo") == 0){
+        *scheduler = FIFO;
+    } else if (strcmp(str, "edf") == 0) {
+        *scheduler = EDF;
+    } else {
+        return 1;
+    }
+    return 0;
+}
 
 int parse_arg(int argc, char** argv, t_params *p) 
 {
+    int i;
 
+    i = 1;
+    while (i < argc - 1) {
+        printf("input argument is %s\n", argv[i]);
+        if (_is_valid_number(argv[i]) != 0) {
+            return 1;
+        }
+        if (_ft_strtol(argv[i]) == -1) {
+            return 1;
+        }
+        i++;
+    }
+    if (_parse_scheduler(argv[8], p) != 0){
+        return 1;
+    }
+    return 0;
 }

@@ -13,6 +13,7 @@ typedef struct s_params
 {
     int n_coders;
     long time_to_burnout;
+    long time_to_compile;
     long time_to_debug;
     long time_to_refactor;
     int n_compiles_required;

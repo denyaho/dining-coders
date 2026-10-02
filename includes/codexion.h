@@ -4,6 +4,7 @@
 #include <limits.h>
 #include <unistd.h>
 #include <stdbool.h>
+#include <pthread.h>
 
 typedef enum e_scheduler {
     FIFO,

@@ -16,6 +16,7 @@ int main(int argc, char** argv)
         write(1, PARSE_ERR_MESSAGE, strlen(PARSE_ERR_MESSAGE));
         return 1;
     }
+    
 
     run_simulate(&params);
     

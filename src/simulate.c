@@ -108,8 +108,25 @@ int run_simulate(t_params *param)
     pthread_t thread_coders[param->n_coders];
     int index;
 
-    init_dongles(param);
-    init_coders(param);
+    if (init_dongles(param) != 0)
+        return (1);
+    if (init_coders(param) != 0)
+        return (1);
+    
+    index = 0;
+    while (index < param->n_coders)
+    {
+        pthread_create(&thread_coders[index], NULL, coder_run, &param->coders[index]);
+        index++;
+    }
+    index = 0;
+    while (index < param->n_coders)
+    {
+        pthread_join(thread_coders[index], NULL);
+        index++;
+    }
+
+
 
     return (0);
 }

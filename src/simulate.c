@@ -13,11 +13,12 @@ void init_dongles(t_params *param)
 {
     t_dongle dongles[param->n_coders];
 
-    
+
 }
 
 void run_simulate(t_params *param)
 {
+    pthread_t thread_coders[params.n_coders];
     t_dongle []
 
     return;

@@ -17,7 +17,8 @@ int main(int argc, char** argv)
         return 1;
     }
 
-    pthread_t thread[params.n_coders];
+    run_simulate(&params);
+    
 
     printf("n_coder is %d\n", params.n_coders);
     printf("time_to_burnout is %ld\n", params.time_to_burnout);

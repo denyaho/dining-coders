@@ -52,7 +52,6 @@ int parse_arg(int argc, char** argv, t_params *p)
 
     i = 1;
     while (i < argc - 1) {
-        printf("input argument is %s\n", argv[i]);
         if (_is_valid_number(argv[i]) != 0) {
             return 1;
         }

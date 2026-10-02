@@ -1,4 +1,5 @@
 #include <includes/codexion.h>
+#include <pthread.h>
 
 char ARG_ERR_MESSAGE[] = "Insufficient number of aruguments\n";
 char PARSE_ERR_MESSAGE[] = "Invalid arguments included\n";
@@ -15,6 +16,8 @@ int main(int argc, char** argv)
         write(1, PARSE_ERR_MESSAGE, strlen(PARSE_ERR_MESSAGE));
         return 1;
     }
+
+    pthread_t thread[params.n_coders];
 
     printf("n_coder is %d\n", params.n_coders);
     printf("time_to_burnout is %ld\n", params.time_to_burnout);

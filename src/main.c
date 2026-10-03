@@ -1,25 +1,40 @@
-#include <includes/codexion.h>
-#include <pthread.h>
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   main.c                                             :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: daogawa <daogawa@student.42tokyo.jp>       +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2026/10/04 03:24:42 by daogawa           #+#    #+#             */
+/*   Updated: 2026/10/04 03:49:38 by daogawa          ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include "includes/codexion.h"
 
 char ARG_ERR_MESSAGE[] = "Insufficient number of aruguments\n";
 char PARSE_ERR_MESSAGE[] = "Invalid arguments included\n";
 
-int main(int argc, char** argv) 
+int	main(int argc, char	**argv)
 {
-    if (argc != 9) {
-        write(1, ARG_ERR_MESSAGE, strlen(ARG_ERR_MESSAGE));
-        return 1;
-    }
-    t_params params;
-    if (parse_arg(argc, argv, &params) != 0)
-    {
-        write(1, PARSE_ERR_MESSAGE, strlen(PARSE_ERR_MESSAGE));
-        return 1;
-    }
-    
+	t_params	params;
 
-    run_simulate(&params);
-    
+	if (argc != 9)
+	{
+		write(1, ARG_ERR_MESSAGE, strlen(ARG_ERR_MESSAGE));
+		return (1);
+	}
+	if (parse_arg(argc, argv, &params) != 0)
+	{
+		write(1, PARSE_ERR_MESSAGE, strlen(PARSE_ERR_MESSAGE));
+		return (1);
+	}
+	if (run_simulate(&params))
+	{
+
+	}
+
+
 
     printf("n_coder is %d\n", params.n_coders);
     printf("time_to_burnout is %ld\n", params.time_to_burnout);
@@ -30,6 +45,6 @@ int main(int argc, char** argv)
     printf("dongle_cooldown is %ld\n", params.dongle_cooldown);
     printf("scheduler is %d\n", params.scheduler);
 
-    
+
     return 0;
 }

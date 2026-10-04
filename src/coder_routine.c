@@ -15,9 +15,8 @@
 
 int get_dongle(t_dongle *dongle)
 {
-	t_params *param;
+	t_params *param; 
 
-	param = dongle->param;
 
 	pthread_mutex_lock(&dongle->dongle_lock);
 	while (dongle->in_use == 1 && !is_stopped())

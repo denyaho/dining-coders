@@ -10,3 +10,7 @@ This is a concurrent processing project in 42tokyo
 
 # 参考資料
 https://hpc-tutorials.llnl.gov/posix/
+
+https://pages.cs.wisc.edu/~remzi/OSTEP/threads-cv.pdf
+
+https://pages.cs.wisc.edu/~remzi/OSTEP/threads-sema.pdf

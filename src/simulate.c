@@ -38,7 +38,8 @@ int	run_simulate(t_params *param)
 	pthread_join(monitor_thread, NULL);
 	while (index < param->n_coders)
 	{
-		pthread_join(param->coders[index].thread, NULL);
+		if (pthread_join(param->coders[index].thread, NULL))
+            return (1);
 		index++;
 	}
 	return (0);

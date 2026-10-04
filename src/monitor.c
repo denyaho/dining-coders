@@ -39,27 +39,59 @@ int is_stopped(t_params *param)
 	return	stopped;
 }
 
+void set_stopped(t_params *param)
+{
+	pthread_mutex_lock(&param->stop_lock);
+	param->stopped = 1;
+	pthread_mutex_unlock(&param->stop_lock);
+}
+
+int all_compiled(t_params *param)
+{
+	int compile_count;
+	int	required_compile_count;
+	int index;
+
+	index = 0;
+	while (index < param->n_coders)
+	{
+		pthread_mutex_lock(&param->coders[index].coder_lock);
+		compile_count = param->coders[index].compile_count;
+		pthread_mutex_unlock(&param->coders[index].coder_lock);
+		if (compile_count < param->n_compiles_required)
+			return (0);
+		index++;
+	}
+	return (1);
+}
+
 void	*monitor_run(void *arg)
 {
 	t_params		*param;
 	struct timespec	ts;
 	t_coder			*coder;
+	int 			index;
 
 	param = (t_params *)arg;
 	coder = param->coders;
-
-	if (coder->compile_count >= param->n_compiles_required)
+	index = 0;
+	while (1)
 	{
-		pthread_mutex_lock(&param->stop_lock);
-		param->stopped = 1;
-		pthread_mutex_unlock(&param->stop_lock);
-		return NULL;
-	}
-	if (check_burnout(coder) == 1)
-	{
-		pthread_mutex_lock(&param->stop_lock);
-		param->stopped = 1;
-		pthread_mutex_unlock(&param->stop_lock);
-		return NULL;
+		index = 0;
+		while (index < param->n_coders)
+		{
+			if (check_burnout(&coder[index]) == 1)
+			{
+				set_stopped(param);
+				return NULL;
+			}
+			index++;
+		}
+		if (all_compiled(param) == 1)
+		{
+			set_stopped(param);
+			return NULL;
+		}
+		usleep(1000); // Sleep for 1 millisecond to prevent busy waiting
 	}
 }

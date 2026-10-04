@@ -17,16 +17,44 @@ int get_dongle(t_dongle *dongle)
 {
 	t_params *param; 
 
+	param = dongle->param;
 
 	pthread_mutex_lock(&dongle->dongle_lock);
-	while (dongle->in_use == 1 && !is_stopped())
-	{
+	while (dongle->in_use == 1 && !is_stopped(param))
 		pthread_cond_wait(&dongle->cond, &dongle->dongle_lock);
+	if (is_stopped(param))
+	{
+		pthread_mutex_unlock(&dongle->dongle_lock);
+		return (0);
 	}
 	dongle->in_use = 1;
+	pthread_mutex_unlock(&dongle->dongle_lock);
+	return (1);
+}
+
+int release_dongle(t_dongle *dongle)
+{
+	t_params *param;
+
+	param = dongle->param;
+	pthread_mutex_lock(&dongle->dongle_lock);
+	dongle->in_use = 0;
+	dongle->available_at = get_current_time() + param->dongle_cooldown;
 	pthread_cond_signal(&dongle->cond);
 	pthread_mutex_unlock(&dongle->dongle_lock);
 	return (0);
+}
+
+void do_debug(t_params *param)
+{
+	printf("debugging\n");
+	usleep(param->time_to_debug);
+}
+
+void do_refactor(t_params *param)
+{
+	printf("refactoring\n");
+	usleep(param->time_to_refactor);
 }
 
 void *coder_run(void *arg)
@@ -34,13 +62,24 @@ void *coder_run(void *arg)
 
     t_coder *coder;
     coder = (t_coder *)arg;
+	t_params *param;
 
+	param = coder->param;
 	while (!is_stopped(coder->param))
 	{
-		if (get_dongle(coder->left_dongle) == 0)
+		if (!get_dongle(coder->left_dongle))
+			return (NULL);
+		if (!get_dongle(coder->right_dongle))
 		{
-			// Coder's routine actions go here
+			release_dongle(coder->left_dongle);
+			return (NULL);
 		}
+		usleep(param->time_to_compile);
+		release_dongle(coder->left_dongle);
+		release_dongle(coder->right_dongle);
+		do_debug(coder->param);
+		do_refactor(coder->param);
+
 	}
 
 }

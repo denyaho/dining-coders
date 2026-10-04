@@ -46,7 +46,7 @@ typedef struct s_dongle
 {
 	int				id;
 	int				in_use; //0 -> not in use 1 -> in use
-	long			avaiable_at;
+	long			available_at;
 	pthread_mutex_t	dongle_lock;
 	pthread_cond_t	cond;
 	t_params		*param;

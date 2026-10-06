@@ -13,14 +13,15 @@
 #include "includes/codexion.h"
 
 
-int get_dongle(t_dongle *dongle)
+int get_dongle(t_dongle *dongle, t_coder *coder)
 {
 	t_params *param; 
 
 	param = dongle->param;
 
 	pthread_mutex_lock(&dongle->dongle_lock);
-	while (dongle->in_use == 1 && !is_stopped(param))
+	schedule_heap(dongle, coder);
+	while (dongle->in_use == 1 && !is_stopped(param) && get_current_time() < dongle->available_at)
 		pthread_cond_wait(&dongle->cond, &dongle->dongle_lock);
 	if (is_stopped(param))
 	{
@@ -57,6 +58,16 @@ void do_refactor(t_params *param)
 	usleep(param->time_to_refactor);
 }
 
+void do_compile(t_coder *coder)
+{
+	printf("compiling\n");
+	pthread_mutex_lock(&coder->coder_lock);
+	coder->last_compile_start = get_current_time();
+	coder->compile_count++;
+	pthread_mutex_unlock(&coder->coder_lock);
+	usleep(coder->param->time_to_compile);
+}
+
 void *coder_run(void *arg)
 {
 
@@ -67,14 +78,14 @@ void *coder_run(void *arg)
 	param = coder->param;
 	while (!is_stopped(coder->param))
 	{
-		if (!get_dongle(coder->left_dongle))
+		if (!get_dongle(coder->left_dongle, coder))
 			return (NULL);
-		if (!get_dongle(coder->right_dongle))
+		if (!get_dongle(coder->right_dongle, coder))
 		{
 			release_dongle(coder->left_dongle);
 			return (NULL);
 		}
-		usleep(param->time_to_compile);
+		do_compile(coder);
 		release_dongle(coder->left_dongle);
 		release_dongle(coder->right_dongle);
 		do_debug(coder->param);

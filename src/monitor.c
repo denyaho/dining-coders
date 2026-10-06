@@ -19,7 +19,7 @@ static int	check_burnout(t_coder *coder)
 	t_params	*param;
 
 	pthread_mutex_lock(&coder->coder_lock);
-	last_compile_time = coder->last_compile_time;
+	last_compile_time = coder->last_compile_start;
 	pthread_mutex_unlock(&coder->coder_lock);
 
 	param = coder->param;

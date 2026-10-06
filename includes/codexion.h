@@ -50,6 +50,8 @@ typedef struct s_dongle
 	pthread_mutex_t	dongle_lock;
 	pthread_cond_t	cond;
 	t_params		*param;
+
+	t_heap			*wait_heap;
 }	t_dongle;
 // avaiable_at and in_use are mutex protected
 
@@ -65,6 +67,14 @@ typedef struct s_coder
 
 	t_params		*param;
 }	t_coder;
+
+
+typedef struct s_heap
+{
+    int size;
+    int limit;
+    long *data;
+}	t_heap;
 
 typedef struct s_timespec
 {

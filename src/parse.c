@@ -1,7 +1,7 @@
 #include <includes/codexion.h>
 
 
-int _is_valid_number(char str[])
+static int _is_valid_number(char str[])
 {
     int i;
 
@@ -18,7 +18,7 @@ int _is_valid_number(char str[])
     return 0;
 }
 
-long _ft_strtol(char str[])
+static long _ft_strtol(char str[])
 {
     long num;
     int i;
@@ -35,7 +35,7 @@ long _ft_strtol(char str[])
     return num;
 }
 
-int _parse_scheduler(char str[], t_scheduler *scheduler) {
+static int _parse_scheduler(char str[], t_scheduler *scheduler) {
     if (strcmp(str, "fifo") == 0){
         *scheduler = FIFO;
     } else if (strcmp(str, "edf") == 0) {
@@ -60,7 +60,6 @@ int parse_arg(int argc, char** argv, t_params *p)
         }
         i++;
     }
-    printf("number is %ld\n", _ft_strtol(argv[1]));
     p->n_coders = _ft_strtol(argv[1]);
     p->time_to_burnout = _ft_strtol(argv[2]);
     p->time_to_compile = _ft_strtol(argv[3]);

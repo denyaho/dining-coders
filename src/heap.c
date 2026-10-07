@@ -43,22 +43,38 @@ bool heap_is_empty(t_heap *hp)
     return false;
 }
 
-void schedule_heap(t_dongle *dongle, t_coder *coder)
+t_heap_request find_heap(t_heap *hp, t_coder *coder)
+{
+    int index;
+
+    index = 0;
+    while (index < hp->size)
+    {
+        if (hp->requests[index].coder == coder)
+            return hp->requests[index];
+        index++;
+    }
+    return (t_heap_request){-1, -1, -1}; // or some other error value
+}
+
+void schedule_heap(t_coder *coder)
 {
     t_params *param;
     t_heap_request req;
-    param = dongle->param;
-
+    param = coder->param;
+    
+    pthread_mutex_lock(&param->table_lock);
     if (param->scheduler == FIFO) {
         req.key = param->seq++;
-        req.coder_id = coder->id;
-        heap_push(dongle->wait_heap, req);
+        req.coder = coder;
+        heap_push(param->wait_heap, req);
     } else {
         req.key = coder->last_compile_start + param->time_to_burnout;
         req.seq = param->seq++;
-        req.coder_id = coder->id;
-        heap_push(dongle->wait_heap, req);
+        req.coder = coder;
+        heap_push(param->wait_heap, req);
     }
+    pthread_mutex_unlock(&param->table_lock);
 }
 
 bool heap_push(t_heap *hp, t_heap_request req)
@@ -84,11 +100,11 @@ bool heap_push(t_heap *hp, t_heap_request req)
     return true;
 }
 
-long heap_top(t_heap *hp)
+t_heap_request heap_top(t_heap *hp)
 {
     if (heap_is_empty(hp))
-        return -1; // or some other error value
-    return hp->requests[0].key;
+        return (t_heap_request){-1, -1, -1}; // or some other error value
+    return hp->requests[0];
 }
 
 long heap_pop_back(t_heap *hp)

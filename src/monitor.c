@@ -14,13 +14,14 @@
 
 static int	check_burnout(t_coder *coder)
 {
+	t_params	*param;
 	long		last_compile_time;
 	long		burnout_time;
-	t_params	*param;
 
-	pthread_mutex_lock(&coder->coder_lock);
+	param = coder->param;
+	pthread_mutex_lock(&param->table_lock);
 	last_compile_time = coder->last_compile_start;
-	pthread_mutex_unlock(&coder->coder_lock);
+	pthread_mutex_unlock(&param->table_lock);
 
 	param = coder->param;
 	burnout_time = param->time_to_burnout;
@@ -55,9 +56,9 @@ int all_compiled(t_params *param)
 	index = 0;
 	while (index < param->n_coders)
 	{
-		pthread_mutex_lock(&param->coders[index].coder_lock);
+		pthread_mutex_lock(&param->table_lock);
 		compile_count = param->coders[index].compile_count;
-		pthread_mutex_unlock(&param->coders[index].coder_lock);
+		pthread_mutex_unlock(&param->table_lock);
 		if (compile_count < param->n_compiles_required)
 			return (0);
 		index++;

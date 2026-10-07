@@ -31,20 +31,7 @@ int	main(int argc, char	**argv)
 	}
 	if (run_simulate(&params))
 	{
-
+		write(1, "Simulation ended\n", strlen("Simulation ended\n"));
 	}
-
-
-
-    printf("n_coder is %d\n", params.n_coders);
-    printf("time_to_burnout is %ld\n", params.time_to_burnout);
-    printf("time_to_compile is %ld\n", params.time_to_compile);
-    printf("time_to_debug is %ld\n", params.time_to_debug);
-    printf("time_to_refactor is %ld\n", params.time_to_refactor);
-    printf("n_compiles_request is %ld\n", params.n_compiles_required);
-    printf("dongle_cooldown is %ld\n", params.dongle_cooldown);
-    printf("scheduler is %d\n", params.scheduler);
-
-
     return 0;
 }

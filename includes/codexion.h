@@ -35,8 +35,13 @@ typedef struct s_params
 	int				n_compiles_required;
 	long			dongle_cooldown;
 	int				stopped;
+	int				seq;
+
+	t_heap			*wait_heap;
+	pthread_mutex_t table_lock;
 	pthread_mutex_t	stop_lock;
 	pthread_mutex_t	print_lock;
+	pthread_cond_t	cond;
 	t_scheduler		scheduler;
 	t_dongle		*dongles;
 	t_coder			*coders;
@@ -47,11 +52,8 @@ typedef struct s_dongle
 	int				id;
 	int				in_use; //0 -> not in use 1 -> in use
 	long			available_at;
-	pthread_mutex_t	dongle_lock;
-	pthread_cond_t	cond;
 	t_params		*param;
 
-	t_heap			*wait_heap;
 }	t_dongle;
 // avaiable_at and in_use are mutex protected
 
@@ -60,20 +62,25 @@ typedef struct s_coder
 	int				id;
 	t_dongle		*left_dongle;
 	t_dongle		*right_dongle;
-	long			last_compile_time; // monitor thread will check this to determine if the coder is starving
+	long			last_compile_start; // monitor thread will check this to determine if the coder is starving
 	int				compile_count; // monitor thread will check
-	pthread_t		thread;
-	pthread_mutex_t	coder_lock;
+	pthread_cond_t	cond;
 
 	t_params		*param;
 }	t_coder;
 
+typedef struct s_heap_request
+{
+	long key;
+	long seq;
+	t_coder			*coder;
+}	t_heap_request;
 
 typedef struct s_heap
 {
     int size;
     int limit;
-    long *data;
+	t_heap_request *requests;
 }	t_heap;
 
 typedef struct s_timespec
@@ -90,3 +97,5 @@ int		init_coders(t_params *param);
 int		run_simulate(t_params *param);
 void	*coder_run(void *arg);
 void	*monitor_run(void *arg);
+t_heap_request heap_top(t_heap *hp);
+t_heap_request find_heap(t_heap *hp, t_coder *coder);

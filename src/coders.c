@@ -10,7 +10,7 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "includes/codexion.h"
+#include "codexion.h"
 
 static void	set_dongles(t_params *param, int i)
 {
@@ -24,13 +24,13 @@ static void	set_dongles(t_params *param, int i)
 static int	init_one_coders(t_params *param, int i)
 {
 	t_coder		*coder;
-	pthread_t	coder_thread;
-	pthread_mutex_t lock;
 
 	coder = &param->coders[i];
 	coder->id = i;
 	coder->last_compile_start = 0;
 	coder->compile_count = 0;
+	if (pthread_mutex_init(&coder->lock, NULL) != 0)
+		return (1);
 	if (pthread_cond_init(&coder->cond, NULL) != 0)
 		return(1);
 	coder->param = param;
@@ -45,6 +45,7 @@ static void destroy_coders(t_params *param, int count)
 	index = 0;
 	while (index < count)
 	{
+		pthread_mutex_destroy(&param->coders[index].lock);
 		pthread_cond_destroy(&param->coders[index].cond);
 		index++;
 	}

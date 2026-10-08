@@ -10,7 +10,7 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "includes/codexion.h"
+#include "codexion.h"
 
 char ARG_ERR_MESSAGE[] = "Insufficient number of aruguments\n";
 char PARSE_ERR_MESSAGE[] = "Invalid arguments included\n";

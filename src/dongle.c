@@ -10,7 +10,7 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "includes/codexion.h"
+#include "codexion.h"
 
 static void	init_one_dongle(t_params *param, int index)
 {

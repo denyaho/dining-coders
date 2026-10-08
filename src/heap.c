@@ -1,4 +1,4 @@
-#include "includes/codexion.h"
+#include "codexion.h"
 
 #define LIMIT 2
 
@@ -54,7 +54,31 @@ t_heap_request find_heap(t_heap *hp, t_coder *coder)
             return hp->requests[index];
         index++;
     }
-    return (t_heap_request){-1, -1, -1}; // or some other error value
+    return (t_heap_request){-1, -1, NULL}; // or some other error value
+}
+
+void heap_push(t_heap *hp, t_heap_request req)
+{
+    int tail_index;
+    int parent_index;
+
+    printf("Current heap size: %d\n", hp->size);
+    if (heap_is_full(hp))
+        return;
+    printf("Pushing request with key: %ld\n", req.key);
+    tail_index = hp->size;
+    hp->size++;
+    while (tail_index > 0)
+    {
+        parent_index = (tail_index - 1 ) / 2;
+        if (hp->requests[parent_index].key <= req.key) {
+            break;
+        }
+        hp->requests[tail_index] = hp->requests[parent_index];
+        tail_index = parent_index;
+    }
+    hp->requests[tail_index] = req;
+    return;
 }
 
 void schedule_heap(t_coder *coder)
@@ -72,38 +96,18 @@ void schedule_heap(t_coder *coder)
         req.key = coder->last_compile_start + param->time_to_burnout;
         req.seq = param->seq++;
         req.coder = coder;
+        printf("Scheduling request with key: %ld\n", req.key);
         heap_push(param->wait_heap, req);
     }
     pthread_mutex_unlock(&param->table_lock);
 }
 
-bool heap_push(t_heap *hp, t_heap_request req)
-{
-    if (heap_is_full(hp))
-    {
-        return false;
-    }
-    hp->requests[hp->size] = req;
-    hp->size++;
 
-    int tail_index = hp->size;
-    while (tail_index > 0)
-    {
-        int parent_index = (tail_index - 1 ) / 2;
-        if (hp->requests[parent_index].key <= req.key) {
-            return true;
-        }
-        hp->requests[tail_index] = hp->requests[parent_index];
-        tail_index = parent_index;
-    }
-    hp->requests[tail_index] = req;
-    return true;
-}
 
 t_heap_request heap_top(t_heap *hp)
 {
     if (heap_is_empty(hp))
-        return (t_heap_request){-1, -1, -1}; // or some other error value
+        return (t_heap_request){-1, -1, NULL}; // or some other error value
     return hp->requests[0];
 }
 

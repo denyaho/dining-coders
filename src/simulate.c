@@ -10,7 +10,7 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "includes/codexion.h"
+#include "codexion.h"
 
 
 
@@ -19,6 +19,7 @@ int	run_simulate(t_params *param)
 	int			index;
 	pthread_t	monitor_thread;
 
+	printf("Starting simulation...\n");
 	if (init_dongles(param) != 0)
 		return (1);
 	if (init_coders(param) != 0)
@@ -27,7 +28,7 @@ int	run_simulate(t_params *param)
 	while (index < param->n_coders)
 	{
 		if (pthread_create(&param->coders[index].thread, NULL, coder_run,
-			&param->coders[index] != 0))
+			&param->coders[index]) != 0)
 				return (1);
 		index++;
 	}

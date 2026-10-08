@@ -10,7 +10,7 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "includes/codexion.h"
+#include "codexion.h"
 
 static int	check_burnout(t_coder *coder)
 {
@@ -18,10 +18,9 @@ static int	check_burnout(t_coder *coder)
 	long		last_compile_time;
 	long		burnout_time;
 
-	param = coder->param;
-	pthread_mutex_lock(&param->table_lock);
+	pthread_mutex_lock(&coder->lock);
 	last_compile_time = coder->last_compile_start;
-	pthread_mutex_unlock(&param->table_lock);
+	pthread_mutex_unlock(&coder->lock);
 
 	param = coder->param;
 	burnout_time = param->time_to_burnout;
@@ -50,15 +49,16 @@ void set_stopped(t_params *param)
 int all_compiled(t_params *param)
 {
 	int compile_count;
-	int	required_compile_count;
 	int index;
+	t_coder			*coder;
 
 	index = 0;
 	while (index < param->n_coders)
 	{
-		pthread_mutex_lock(&param->table_lock);
-		compile_count = param->coders[index].compile_count;
-		pthread_mutex_unlock(&param->table_lock);
+		coder = &param->coders[index];
+		pthread_mutex_lock(&coder->lock);
+		compile_count = coder->compile_count;
+		pthread_mutex_unlock(&coder->lock);
 		if (compile_count < param->n_compiles_required)
 			return (0);
 		index++;
@@ -69,7 +69,6 @@ int all_compiled(t_params *param)
 void	*monitor_run(void *arg)
 {
 	t_params		*param;
-	struct timespec	ts;
 	t_coder			*coder;
 	int 			index;
 
@@ -83,6 +82,7 @@ void	*monitor_run(void *arg)
 		{
 			if (check_burnout(&coder[index]) == 1)
 			{
+				printf("%ld %d has burned out\n", get_current_time(), coder[index].id);
 				set_stopped(param);
 				return NULL;
 			}

@@ -19,33 +19,15 @@
 #include <pthread.h>
 #include <time.h>
 
+typedef struct s_params t_params;
+typedef struct s_dongle t_dongle;
+typedef struct s_coder t_coder;
+
 typedef enum e_scheduler
 {
 	FIFO,
 	EDF
 }	t_scheduler;
-
-typedef struct s_params
-{
-	int				n_coders;
-	long			time_to_burnout;
-	long			time_to_compile;
-	long			time_to_debug;
-	long			time_to_refactor;
-	int				n_compiles_required;
-	long			dongle_cooldown;
-	int				stopped;
-	int				seq;
-
-	t_heap			*wait_heap;
-	pthread_mutex_t table_lock;
-	pthread_mutex_t	stop_lock;
-	pthread_mutex_t	print_lock;
-	pthread_cond_t	cond;
-	t_scheduler		scheduler;
-	t_dongle		*dongles;
-	t_coder			*coders;
-}	t_params;
 
 typedef struct s_dongle
 {
@@ -64,6 +46,8 @@ typedef struct s_coder
 	t_dongle		*right_dongle;
 	long			last_compile_start; // monitor thread will check this to determine if the coder is starving
 	int				compile_count; // monitor thread will check
+	pthread_mutex_t lock;
+	pthread_t		thread;
 	pthread_cond_t	cond;
 
 	t_params		*param;
@@ -83,6 +67,28 @@ typedef struct s_heap
 	t_heap_request *requests;
 }	t_heap;
 
+typedef struct s_params
+{
+	int				n_coders;
+	long			time_to_burnout;
+	long			time_to_compile;
+	long			time_to_debug;
+	long			time_to_refactor;
+	int				n_compiles_required;
+	long			dongle_cooldown;
+	int				stopped;
+	int				seq;
+
+	t_heap			*wait_heap;
+	pthread_mutex_t table_lock;
+	pthread_mutex_t	stop_lock;
+	pthread_mutex_t	print_lock;
+	t_scheduler		scheduler;
+	t_dongle		*dongles;
+	t_coder			*coders;
+}	t_params;
+
+
 typedef struct s_timespec
 {
 	time_t	tv_sec;
@@ -99,3 +105,8 @@ void	*coder_run(void *arg);
 void	*monitor_run(void *arg);
 t_heap_request heap_top(t_heap *hp);
 t_heap_request find_heap(t_heap *hp, t_coder *coder);
+void schedule_heap(t_coder *coder);
+bool heap_pop(t_heap *hp);
+int is_stopped(t_params *param);
+long get_current_time(void);
+t_heap *make_heap(int n);

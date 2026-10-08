@@ -1,9 +1,9 @@
-#include <includes/codexion.h>
+#include "codexion.h"
 
 
 static int _is_valid_number(char str[])
 {
-    int i;
+    unsigned int i;
 
     if (strlen(str) == 0){
         return 1;
@@ -21,7 +21,7 @@ static int _is_valid_number(char str[])
 static long _ft_strtol(char str[])
 {
     long num;
-    int i;
+    unsigned int i;
 
     i = 0;
     num = 0;
@@ -41,6 +41,29 @@ static int _parse_scheduler(char str[], t_scheduler *scheduler) {
     } else if (strcmp(str, "edf") == 0) {
         *scheduler = EDF;
     } else {
+        return 1;
+    }
+    return 0;
+}
+
+static int _init_params(t_params *p) {
+    p->seq = 0;
+    if (pthread_mutex_init(&p->table_lock, NULL) != 0) {
+        return 1;
+    }
+    p->wait_heap = make_heap(p->n_coders);
+    if (p->wait_heap == NULL) {
+        return 1;
+    }
+    if (pthread_mutex_init(&p->stop_lock, NULL) != 0) {
+        free(p->wait_heap);
+        pthread_mutex_destroy(&p->table_lock);
+        return 1;
+    }
+    if (pthread_mutex_init(&p->print_lock, NULL) != 0) {
+        free(p->wait_heap);
+        pthread_mutex_destroy(&p->stop_lock);
+        pthread_mutex_destroy(&p->table_lock);
         return 1;
     }
     return 0;
@@ -70,5 +93,5 @@ int parse_arg(int argc, char** argv, t_params *p)
     if (_parse_scheduler(argv[8], &p->scheduler) != 0){
         return 1;
     }
-    return 0;
+    return (_init_params(p));
 }

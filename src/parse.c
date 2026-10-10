@@ -49,6 +49,7 @@ static int _parse_scheduler(char str[], t_scheduler *scheduler) {
 static int _init_params(t_params *p) {
     p->stopped = 0;
     p->seq = 0;
+    p->thread_create_count = 0;
     p->wait_heap = make_heap(p->n_coders);
     if (p->wait_heap == NULL) 
         return 1;

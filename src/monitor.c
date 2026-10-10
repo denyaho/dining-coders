@@ -57,7 +57,6 @@ void set_stopped(t_params *param)
 		index++;
 	}
 	pthread_mutex_unlock(&param->table_lock);
-
 }
 
 static int all_compiled(t_params *param)

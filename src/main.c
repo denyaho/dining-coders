@@ -40,7 +40,7 @@ int	main(int argc, char	**argv)
 		return (1);
 	}
 	clean_params(&params);
-	destroy_coders(&params, params.n_coders);
+	destroy_coders(&params, params.thread_create_count);
 	free(params.coders);
 	free(params.dongles);
 

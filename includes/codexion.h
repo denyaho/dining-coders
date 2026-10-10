@@ -88,6 +88,7 @@ typedef struct s_params
 	int				stopped;
 	int				seq;
 	long			start_time;
+	int				thread_create_count;
 
 	t_heap			*wait_heap;
 	pthread_mutex_t table_lock;
@@ -127,3 +128,4 @@ void heap_delete_at(t_heap *hp, int index);
 void ft_usleep(long duration_sleep, t_params *params);
 void clean_params(t_params *param);
 void    free_heap(t_heap *hp);
+void set_stopped(t_params *param);

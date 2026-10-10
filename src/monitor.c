@@ -24,7 +24,7 @@ static int	check_burnout(t_coder *coder)
 	burnout_time = param->time_to_burnout;
 	pthread_mutex_unlock(&coder->lock);
 
-	if (last_compile_time + burnout_time < get_current_time(param))
+	if (last_compile_time + burnout_time < get_process_time(param))
 		return (1);
 	return (0);
 }
@@ -108,6 +108,6 @@ void	*monitor_run(void *arg)
 			set_stopped(param);
 			return NULL;
 		}
-		usleep(1000); // Sleep for 1 millisecond to prevent busy waiting
+		ft_usleep(1, param); // Sleep for 1 millisecond to prevent busy waiting
 	}
 }

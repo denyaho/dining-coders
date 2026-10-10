@@ -19,12 +19,6 @@ t_heap *make_heap(int n)
     return hp;
 }
 
-void delete_heap(t_heap *hp)
-{
-    free(hp->requests);
-    free(hp);
-}
-
 bool heap_is_full(t_heap *hp)
 {
     if (hp->size == hp->limit)
@@ -43,7 +37,7 @@ bool heap_is_empty(t_heap *hp)
     return false;
 }
 
-t_heap_request find_heap(t_heap *hp, t_coder *coder)
+int find_heap(t_heap *hp, t_coder *coder)
 {
     int index;
 
@@ -51,10 +45,10 @@ t_heap_request find_heap(t_heap *hp, t_coder *coder)
     while (index < hp->size)
     {
         if (hp->requests[index].coder == coder)
-            return hp->requests[index];
+            return index;
         index++;
     }
-    return (t_heap_request){-1, -1, NULL}; // or some other error value
+    return -1; // or some other error value
 }
 
 void heap_push(t_heap *hp, t_heap_request req)
@@ -66,8 +60,8 @@ void heap_push(t_heap *hp, t_heap_request req)
     if (heap_is_full(hp))
         return;
 //    printf("Pushing request with key: %ld\n", req.key);
-    tail_index = hp->size;
     hp->size++;
+    tail_index = hp->size - 1;
     while (tail_index > 0)
     {
         parent_index = (tail_index - 1 ) / 2;
@@ -120,23 +114,74 @@ bool heap_pop(t_heap *hp)
     int index;
     int child1;
     int child2;
+    t_heap_request tail_request;
 
     if (heap_is_empty(hp))
         return false;
-    long tail_data = hp->requests[hp->size - 1].key;
+    tail_request = hp->requests[hp->size - 1];
     heap_pop_back(hp);
     index = 0;
     while (index * 2 + 1 < hp->size)
     {
         child1 = index * 2 + 1;
         child2 = index * 2 + 2;
-        if (child2 < hp->size && hp->requests[child2].key > hp->requests[child1].key)
+        if (child2 < hp->size && hp->requests[child2].key < hp->requests[child1].key)
             child1 = child2;
-        if (hp->requests[child1].key >= tail_data)
+        if (hp->requests[child1].key >= tail_request.key)
             break;
         hp->requests[index] = hp->requests[child1];
         index = child1;
     }
-    hp->requests[index] = hp->requests[hp->size];
+    hp->requests[index] = tail_request;
     return true;
+}
+
+void shift_down(t_heap *hp, int index)
+{
+    int child1;
+    int child2;
+    t_heap_request temp = hp->requests[index];
+
+    while (index * 2 + 1 < hp->size)
+    {
+        child1 = index * 2 + 1;
+        child2 = index * 2 + 2;
+        if (child2 < hp->size 
+            && hp->requests[child2].key < hp->requests[child1].key)
+            child1 = child2;
+        if (hp->requests[child1].key >= temp.key)
+            break;
+        hp->requests[index] = hp->requests[child1];
+        index = child1;
+    }
+    hp->requests[index] = temp;
+}
+
+void shift_up(t_heap *hp, int index)
+{
+    int parent;
+    t_heap_request temp;
+
+    temp = hp->requests[index];
+    while (index > 0)
+    {
+        parent = (index - 1) / 2;
+        if (hp->requests[parent].key <= temp.key)
+            break;
+        hp->requests[index] = hp->requests[parent];
+        index = parent;
+    }
+    hp->requests[index] = temp;
+}
+
+void heap_delete_at(t_heap *hp, int index)
+{
+    if (index < 0 || index >= hp->size)
+        return;
+    hp->requests[index] = hp->requests[hp->size - 1];
+    hp->size--; 
+    if (hp->size == 0 || index == hp->size)
+        return;
+    shift_down(hp, index);
+    shift_up(hp, index);
 }

@@ -32,7 +32,10 @@ static int	init_one_coders(t_params *param, int i)
 	if (pthread_mutex_init(&coder->lock, NULL) != 0)
 		return (1);
 	if (pthread_cond_init(&coder->cond, NULL) != 0)
-		return(1);
+	{
+		pthread_mutex_destroy(&coder->lock);
+		return (1);
+	}
 	coder->param = param;
 	set_dongles(param, i);
 	return (0);
@@ -66,7 +69,7 @@ int	init_coders(t_params *param)
 	{
 		if (init_one_coders(param, index) != 0)
 		{
-			destroy_coders(param, index - 1);
+			destroy_coders(param, index);
 			return (1);
 		}
 		index++;

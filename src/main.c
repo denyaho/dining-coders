@@ -20,7 +20,7 @@ int	main(int argc, char	**argv)
 	long long start_time;
 	t_params	params;
 
-	start_time = get_start_time();
+	start_time = get_current_time();
 	params.start_time = start_time;
 
 	if (argc != 9)
@@ -33,9 +33,16 @@ int	main(int argc, char	**argv)
 		write(1, PARSE_ERR_MESSAGE, strlen(PARSE_ERR_MESSAGE));
 		return (1);
 	}
-	while (run_simulate(&params))
+	if (run_simulate(&params))
 	{
-		write(1, "Simulation ended\n", strlen("Simulation ended\n"));
+		write(2, "Simulation ended\n", strlen("Simulation ended\n"));
+		clean_params(&params);
+		return (1);
 	}
+	clean_params(&params);
+	destroy_coders(&params, params.n_coders);
+	free(params.coders);
+	free(params.dongles);
+
     return 0;
 }

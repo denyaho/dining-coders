@@ -14,7 +14,10 @@ src/heap.c \
 src/parse.c \
 src/simulate.c \
 src/time.c \
-src/print.c
+src/print.c \
+src/sleep.c \
+src/clean.c \
+
 
 OBJS = $(SRCS:.c=.o)
 HEADERS = includes/codexion.h

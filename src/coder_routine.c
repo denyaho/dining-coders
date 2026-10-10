@@ -23,7 +23,10 @@ int is_top(t_coder *coder)
 	param = coder->param;
 	heap = param->wait_heap;
 
-	coder_request = find_heap(heap, coder);
+	index = find_heap(heap, coder);
+	if (index == -1)
+		return false;
+	coder_request = heap->requests[index];
 	index = 0;
 	while (index < heap->size)
 	{
@@ -52,8 +55,8 @@ bool is_available_dongle(t_coder *coder)
 	t_params *param;
 	
 	param = coder->param;
-	return (get_current_time(param) >= coder->left_dongle->available_at 
-		&& get_current_time(param) >= coder->right_dongle->available_at);
+	return (get_process_time(param) >= coder->left_dongle->available_at 
+		&& get_process_time(param) >= coder->right_dongle->available_at);
 }
 
 
@@ -76,7 +79,7 @@ int get_dongle(t_coder *coder)
 		else
 			pthread_cond_wait(&coder->cond, &param->table_lock);
 	}
-	heap_pop(param->wait_heap);
+	heap_delete_at(param->wait_heap, find_heap(param->wait_heap, coder));
 	if (is_stopped(param))
 	{
 		pthread_mutex_unlock(&param->table_lock);
@@ -113,9 +116,9 @@ int release_dongle(t_coder *coder)
 	param = coder->param;
 	pthread_mutex_lock(&param->table_lock);
 	coder->left_dongle->in_use = 0;
-	coder->left_dongle->available_at = get_current_time(param) + param->dongle_cooldown;
+	coder->left_dongle->available_at = get_process_time(param) + param->dongle_cooldown;
 	coder->right_dongle->in_use = 0;
-	coder->right_dongle->available_at = get_current_time(param) + param->dongle_cooldown;
+	coder->right_dongle->available_at = get_process_time(param) + param->dongle_cooldown;
 	signal_to_adjacent_coder(param, id);
 	pthread_mutex_unlock(&param->table_lock);
 	return (0);
@@ -126,7 +129,7 @@ void do_debug(t_coder *coder)
 	if (is_stopped(coder->param))
 		return;
 	print_status(coder->param, DEBUGGING, coder->id);
-	usleep(coder->param->time_to_debug * 1000);
+	ft_usleep(coder->param->time_to_debug, coder->param);
 }
 
 void do_refactor(t_coder *coder)
@@ -134,7 +137,7 @@ void do_refactor(t_coder *coder)
 	if (is_stopped(coder->param))
 		return;
 	print_status(coder->param, REFACTORING, coder->id);
-	usleep(coder->param->time_to_refactor * 1000);
+	ft_usleep(coder->param->time_to_refactor, coder->param);
 }
 
 void do_compile(t_coder *coder)
@@ -144,20 +147,32 @@ void do_compile(t_coder *coder)
 
 	if (is_stopped(param))
 		return;
-	pthread_mutex_lock(&param->table_lock);
-	coder->last_compile_start = get_current_time(param);
+	pthread_mutex_lock(&coder->lock);
+	coder->last_compile_start = get_process_time(param);
 	coder->compile_count++;
-	pthread_mutex_unlock(&param->table_lock);
+	pthread_mutex_unlock(&coder->lock);
 	print_status(coder->param, COMPILING, coder->id);
-	usleep(coder->param->time_to_compile * 1000);
+	ft_usleep(coder->param->time_to_compile, coder->param);
 }
-
 void *coder_run(void *arg)
 {
     t_coder *coder;
+	t_params *param;
     coder = (t_coder *)arg;
+	param = coder->param;
 
-	while (!is_stopped(coder->param))
+	if (param->n_coders == 1)
+	{
+		print_status(coder->param, TAKEN_DONGLE, coder->id);
+		pthread_mutex_lock(&param->table_lock);
+		while( !is_stopped(param))
+			pthread_cond_wait(&coder->cond, &param->table_lock);
+		pthread_mutex_unlock(&param->table_lock);
+		return (NULL);
+	}
+	if (coder->id % 2 != 0)
+		ft_usleep(1, coder->param);
+	while(!is_stopped(coder->param))
 	{
 		if (get_dongle(coder))
 			return (NULL);

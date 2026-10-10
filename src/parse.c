@@ -49,20 +49,20 @@ static int _parse_scheduler(char str[], t_scheduler *scheduler) {
 static int _init_params(t_params *p) {
     p->stopped = 0;
     p->seq = 0;
-    if (pthread_mutex_init(&p->table_lock, NULL) != 0) {
-        return 1;
-    }
     p->wait_heap = make_heap(p->n_coders);
-    if (p->wait_heap == NULL) {
+    if (p->wait_heap == NULL) 
+        return 1;
+    if (pthread_mutex_init(&p->table_lock, NULL) != 0) {
+        free_heap(p->wait_heap);
         return 1;
     }
     if (pthread_mutex_init(&p->stop_lock, NULL) != 0) {
-        free(p->wait_heap);
+        free_heap(p->wait_heap);
         pthread_mutex_destroy(&p->table_lock);
         return 1;
     }
     if (pthread_mutex_init(&p->print_lock, NULL) != 0) {
-        free(p->wait_heap);
+        free_heap(p->wait_heap);
         pthread_mutex_destroy(&p->stop_lock);
         pthread_mutex_destroy(&p->table_lock);
         return 1;

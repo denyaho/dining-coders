@@ -19,11 +19,13 @@ int	run_simulate(t_params *param)
 	int			index;
 	pthread_t	monitor_thread;
 
-	printf("Starting simulation...\n");
 	if (init_dongles(param) != 0)
 		return (1);
 	if (init_coders(param) != 0)
+	{
+		free(param->dongles);
 		return (1);
+	}
 	index = 0;
 	while (index < param->n_coders)
 	{
@@ -42,9 +44,6 @@ int	run_simulate(t_params *param)
 		if (pthread_join(param->coders[index].thread, NULL))
             return (0);
 		index++;
-	}
-	destroy_coders(param, param->n_coders);
-	free_dongles(param);
-	
+	}	
 	return (0);
 }

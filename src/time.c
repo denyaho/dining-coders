@@ -1,6 +1,6 @@
 #include "codexion.h"
 
-long long get_start_time()
+long long get_current_time()
 {
     struct timespec ts;
 
@@ -8,7 +8,7 @@ long long get_start_time()
     return (long long)(ts.tv_sec * 1000 + ts.tv_nsec / 1000000);
 }
 
-long long get_current_time(t_params *param)
+long long get_process_time(t_params *param)
 {
     struct timespec ts;
 

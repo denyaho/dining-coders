@@ -13,7 +13,8 @@ src/dongle.c \
 src/heap.c \
 src/parse.c \
 src/simulate.c \
-src/time.c
+src/time.c \
+src/print.c
 
 OBJS = $(SRCS:.c=.o)
 HEADERS = includes/codexion.h

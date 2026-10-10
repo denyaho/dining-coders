@@ -23,6 +23,15 @@ typedef struct s_params t_params;
 typedef struct s_dongle t_dongle;
 typedef struct s_coder t_coder;
 
+typedef enum e_print_status
+{
+	TAKEN_DONGLE,
+	COMPILING,
+	DEBUGGING,
+	REFACTORING,
+	BURNED_OUT,
+}	t_print_status;
+
 typedef enum e_scheduler
 {
 	FIFO,
@@ -78,6 +87,7 @@ typedef struct s_params
 	long			dongle_cooldown;
 	int				stopped;
 	int				seq;
+	long			start_time;
 
 	t_heap			*wait_heap;
 	pthread_mutex_t table_lock;
@@ -98,7 +108,7 @@ typedef struct s_timespec
 int	parse_arg(int argc, char **argv, t_params *p);
 int		init_dongles(t_params *param);
 void	free_dongles(t_params *param);
-void	free_coders(t_params *param);
+void	destroy_coders(t_params *param, int count);
 int		init_coders(t_params *param);
 int		run_simulate(t_params *param);
 void	*coder_run(void *arg);
@@ -108,5 +118,8 @@ t_heap_request find_heap(t_heap *hp, t_coder *coder);
 void schedule_heap(t_coder *coder);
 bool heap_pop(t_heap *hp);
 int is_stopped(t_params *param);
-long get_current_time(void);
+long long get_current_time(t_params *param);
+long long get_start_time();
 t_heap *make_heap(int n);
+void print_status(t_params *param, t_print_status status, int coder_id);
+struct timespec *get_shorter_cooldown_dongle(struct timespec *ts, t_coder *coder);

@@ -32,16 +32,19 @@ int	run_simulate(t_params *param)
 				return (1);
 		index++;
 	}
-	index = 0;
 	if (pthread_create(&monitor_thread, NULL,
-		monitor_run, &param) != 0)
+		monitor_run, param) != 0)
 		return (1);
 	pthread_join(monitor_thread, NULL);
+	index = 0;
 	while (index < param->n_coders)
 	{
 		if (pthread_join(param->coders[index].thread, NULL))
-            return (1);
+            return (0);
 		index++;
 	}
+	destroy_coders(param, param->n_coders);
+	free_dongles(param);
+	
 	return (0);
 }

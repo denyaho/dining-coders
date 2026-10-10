@@ -23,6 +23,12 @@ static void	init_one_dongle(t_params *param, int index)
 	dongle->param = param;
 }
 
+void free_dongles(t_params *param)
+{
+	if (param->dongles)
+		free(param->dongles);
+}
+
 int	init_dongles(t_params *param)
 {
 	int			index;

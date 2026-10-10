@@ -17,7 +17,11 @@ char PARSE_ERR_MESSAGE[] = "Invalid arguments included\n";
 
 int	main(int argc, char	**argv)
 {
+	long long start_time;
 	t_params	params;
+
+	start_time = get_start_time();
+	params.start_time = start_time;
 
 	if (argc != 9)
 	{
@@ -29,7 +33,7 @@ int	main(int argc, char	**argv)
 		write(1, PARSE_ERR_MESSAGE, strlen(PARSE_ERR_MESSAGE));
 		return (1);
 	}
-	if (run_simulate(&params))
+	while (run_simulate(&params))
 	{
 		write(1, "Simulation ended\n", strlen("Simulation ended\n"));
 	}

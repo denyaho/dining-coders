@@ -62,10 +62,10 @@ void heap_push(t_heap *hp, t_heap_request req)
     int tail_index;
     int parent_index;
 
-    printf("Current heap size: %d\n", hp->size);
+//    printf("Current heap size: %d\n", hp->size);
     if (heap_is_full(hp))
         return;
-    printf("Pushing request with key: %ld\n", req.key);
+//    printf("Pushing request with key: %ld\n", req.key);
     tail_index = hp->size;
     hp->size++;
     while (tail_index > 0)
@@ -87,19 +87,14 @@ void schedule_heap(t_coder *coder)
     t_heap_request req;
     param = coder->param;
     
-    pthread_mutex_lock(&param->table_lock);
     if (param->scheduler == FIFO) {
-        req.key = param->seq++;
-        req.coder = coder;
-        heap_push(param->wait_heap, req);
+        req.key = param->seq;
     } else {
         req.key = coder->last_compile_start + param->time_to_burnout;
-        req.seq = param->seq++;
-        req.coder = coder;
-        printf("Scheduling request with key: %ld\n", req.key);
-        heap_push(param->wait_heap, req);
     }
-    pthread_mutex_unlock(&param->table_lock);
+    req.seq = param->seq++;
+    req.coder = coder;
+    heap_push(param->wait_heap, req);
 }
 
 

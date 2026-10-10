@@ -20,11 +20,11 @@ static int	check_burnout(t_coder *coder)
 
 	pthread_mutex_lock(&coder->lock);
 	last_compile_time = coder->last_compile_start;
-	pthread_mutex_unlock(&coder->lock);
-
 	param = coder->param;
 	burnout_time = param->time_to_burnout;
-	if (last_compile_time + burnout_time < get_current_time())
+	pthread_mutex_unlock(&coder->lock);
+
+	if (last_compile_time + burnout_time < get_current_time(param))
 		return (1);
 	return (0);
 }
@@ -41,12 +41,26 @@ int is_stopped(t_params *param)
 
 void set_stopped(t_params *param)
 {
+	t_coder		*coder;
+	int index;
+	
+	index = 0;
 	pthread_mutex_lock(&param->stop_lock);
 	param->stopped = 1;
 	pthread_mutex_unlock(&param->stop_lock);
+	
+	pthread_mutex_lock(&param->table_lock);
+	while (index < param->n_coders)
+	{
+		coder = &param->coders[index];
+		pthread_cond_signal(&coder->cond);
+		index++;
+	}
+	pthread_mutex_unlock(&param->table_lock);
+
 }
 
-int all_compiled(t_params *param)
+static int all_compiled(t_params *param)
 {
 	int compile_count;
 	int index;
@@ -72,6 +86,7 @@ void	*monitor_run(void *arg)
 	t_coder			*coder;
 	int 			index;
 
+	
 	param = (t_params *)arg;
 	coder = param->coders;
 	index = 0;
@@ -80,15 +95,15 @@ void	*monitor_run(void *arg)
 		index = 0;
 		while (index < param->n_coders)
 		{
-			if (check_burnout(&coder[index]) == 1)
+			if (check_burnout(&coder[index]))
 			{
-				printf("%ld %d has burned out\n", get_current_time(), coder[index].id);
+				print_status(param, BURNED_OUT, coder[index].id);
 				set_stopped(param);
 				return NULL;
 			}
 			index++;
 		}
-		if (all_compiled(param) == 1)
+		if (all_compiled(param))
 		{
 			set_stopped(param);
 			return NULL;

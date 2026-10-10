@@ -38,7 +38,7 @@ static int	init_one_coders(t_params *param, int i)
 	return (0);
 }
 
-static void destroy_coders(t_params *param, int count)
+void destroy_coders(t_params *param, int count)
 {
 	int index;
 
@@ -50,6 +50,8 @@ static void destroy_coders(t_params *param, int count)
 		index++;
 	}
 }
+
+
 int	init_coders(t_params *param)
 {
 	int		index;

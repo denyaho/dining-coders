@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   parse.c                                            :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: daogawa <daogawa@student.42tokyo.jp>       +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2026/10/13 21:31:09 by daogawa           #+#    #+#             */
+/*   Updated: 2026/10/13 21:31:10 by daogawa          ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "codexion.h"
 
 
@@ -51,7 +63,7 @@ static int _init_params(t_params *p) {
     p->seq = 0;
     p->thread_create_count = 0;
     p->wait_heap = make_heap(p->n_coders);
-    if (p->wait_heap == NULL) 
+    if (p->wait_heap == NULL)
         return 1;
     if (pthread_mutex_init(&p->table_lock, NULL) != 0) {
         free_heap(p->wait_heap);
@@ -71,7 +83,7 @@ static int _init_params(t_params *p) {
     return 0;
 }
 
-int parse_arg(int argc, char** argv, t_params *p) 
+int parse_arg(int argc, char** argv, t_params *p)
 {
     int i;
 

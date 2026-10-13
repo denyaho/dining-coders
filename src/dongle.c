@@ -23,7 +23,7 @@ static void	init_one_dongle(t_params *param, int index)
 	dongle->param = param;
 }
 
-void free_dongles(t_params *param)
+void	free_dongles(t_params *param)
 {
 	if (param->dongles)
 		free(param->dongles);
@@ -45,4 +45,18 @@ int	init_dongles(t_params *param)
 		index++;
 	}
 	return (0);
+}
+
+bool	is_used_dongle(t_coder *coder)
+{
+	return (coder->left_dongle->in_use || coder->right_dongle->in_use);
+}
+
+bool	is_available_dongle(t_coder *coder)
+{
+	t_params	*param;
+
+	param = coder->param;
+	return (get_process_time(param) >= coder->left_dongle->available_at
+		&& get_process_time(param) >= coder->right_dongle->available_at);
 }

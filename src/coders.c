@@ -41,9 +41,9 @@ static int	init_one_coders(t_params *param, int i)
 	return (0);
 }
 
-void destroy_coders(t_params *param, int count)
+void	destroy_coders(t_params *param, int count)
 {
-	int index;
+	int	index;
 
 	index = 0;
 	while (index < count)
@@ -53,7 +53,6 @@ void destroy_coders(t_params *param, int count)
 		index++;
 	}
 }
-
 
 int	init_coders(t_params *param)
 {
@@ -75,4 +74,18 @@ int	init_coders(t_params *param)
 		index++;
 	}
 	return (0);
+}
+
+void	signal_to_adjacent_coder(t_params *param, int id)
+{
+	if (param->n_coders == 1)
+		return ;
+	if (id == 0)
+		pthread_cond_signal(&param->coders[param->n_coders - 1].cond);
+	else
+		pthread_cond_signal(&param->coders[id - 1].cond);
+	if (id == param->n_coders - 1)
+		pthread_cond_signal(&param->coders[0].cond);
+	else
+		pthread_cond_signal(&param->coders[id + 1].cond);
 }

@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   heap.c                                             :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: daogawa <daogawa@student.42tokyo.jp>       +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2026/10/13 21:31:04 by daogawa           #+#    #+#             */
+/*   Updated: 2026/10/13 21:31:05 by daogawa          ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "codexion.h"
 
 #define LIMIT 2
@@ -80,7 +92,7 @@ void schedule_heap(t_coder *coder)
     t_params *param;
     t_heap_request req;
     param = coder->param;
-    
+
     if (param->scheduler == FIFO) {
         req.key = param->seq;
     } else {
@@ -146,7 +158,7 @@ void shift_down(t_heap *hp, int index)
     {
         child1 = index * 2 + 1;
         child2 = index * 2 + 2;
-        if (child2 < hp->size 
+        if (child2 < hp->size
             && hp->requests[child2].key < hp->requests[child1].key)
             child1 = child2;
         if (hp->requests[child1].key >= temp.key)
@@ -179,7 +191,7 @@ void heap_delete_at(t_heap *hp, int index)
     if (index < 0 || index >= hp->size)
         return;
     hp->requests[index] = hp->requests[hp->size - 1];
-    hp->size--; 
+    hp->size--;
     if (hp->size == 0 || index == hp->size)
         return;
     shift_down(hp, index);

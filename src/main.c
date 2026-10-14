@@ -15,14 +15,17 @@
 char ARG_ERR_MESSAGE[] = "Insufficient number of aruguments\n";
 char PARSE_ERR_MESSAGE[] = "Invalid arguments included\n";
 
+static void _set_start_time(t_params *params)
+{
+	long start_time;
+	start_time = get_current_time();
+	params->start_time = start_time;
+}
+
 int	main(int argc, char	**argv)
 {
-	long long start_time;
 	t_params	params;
-
-	start_time = get_current_time();
-	params.start_time = start_time;
-
+	_set_start_time(&params);
 	if (argc != 9)
 	{
 		write(1, ARG_ERR_MESSAGE, strlen(ARG_ERR_MESSAGE));

@@ -51,7 +51,7 @@ deadlocks, or starvation**, using only mutexes and condition variables.
 ├── includes/codexion.h   # structs, enums, prototypes
 └── src/
     ├── main.c            # entry point, argument count check
-    ├── parse.c           # argument validation / parameter init
+    ├── parse.c           # argument validation / tableeter init
     ├── simulate.c        # thread creation and join
     ├── coders.c          # coder initialisation / destruction
     ├── dongle.c          # dongle initialisation

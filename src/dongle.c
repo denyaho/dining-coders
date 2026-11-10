@@ -12,51 +12,83 @@
 
 #include "codexion.h"
 
-static void	init_one_dongle(t_params *param, int index)
-{
-	t_dongle	*dongle;
-
-	dongle = &param->dongles[index];
-	dongle->id = index;
-	dongle->in_use = 0;
-	dongle->available_at = 0;
-	dongle->param = param;
-}
-
-void	free_dongles(t_params *param)
-{
-	if (param->dongles)
-		free(param->dongles);
-}
-
-int	init_dongles(t_params *param)
-{
-	int			index;
-	t_dongle	*dongles;
-
-	dongles = malloc(sizeof(t_dongle) * param->n_coders);
-	if (!dongles)
-		return (1);
-	param->dongles = dongles;
-	index = 0;
-	while (index < param->n_coders)
-	{
-		init_one_dongle(param, index);
-		index++;
-	}
-	return (0);
-}
-
-bool	is_used_dongle(t_coder *coder)
+bool	dongles_in_use(t_coder *coder)
 {
 	return (coder->left_dongle->in_use || coder->right_dongle->in_use);
 }
 
-bool	is_available_dongle(t_coder *coder)
+bool	dongles_cooled_down(t_coder *coder)
 {
-	t_params	*param;
+	t_table	*table;
 
-	param = coder->param;
-	return (get_process_time(param) >= coder->left_dongle->available_at
-		&& get_process_time(param) >= coder->right_dongle->available_at);
+	table = coder->table;
+	return (get_process_time(table) >= coder->left_dongle->available_at
+		&& get_process_time(table) >= coder->right_dongle->available_at);
+}
+
+void	signal_neighbours(t_table *table, int id)
+{
+	if (table->n_coders == 1)
+		return ;
+	if (id == 0)
+		pthread_cond_signal(&table->coders[table->n_coders - 1].cond);
+	else
+		pthread_cond_signal(&table->coders[id - 1].cond);
+	if (id == table->n_coders - 1)
+		pthread_cond_signal(&table->coders[0].cond);
+	else
+		pthread_cond_signal(&table->coders[id + 1].cond);
+}
+
+int	take_dongles(t_coder *coder)
+{
+	t_table	*table;
+	struct		timespec ts;
+
+	table = coder->table;
+	clock_gettime(CLOCK_REALTIME, &ts);
+	pthread_mutex_lock(&table->table_lock);
+	enqueue_request(coder);
+	while (!has_priority(coder) || !dongles_cooled_down(coder)
+		|| dongles_in_use(coder))
+	{
+		if (is_stopped(table))
+			break ;
+		if (!dongles_cooled_down(coder))
+			pthread_cond_timedwait(&coder->cond, &table->table_lock,
+				get_dongles_ready_time(&ts, coder));
+		else
+			pthread_cond_wait(&coder->cond, &table->table_lock);
+	}
+	heap_delete_at(table->wait_heap, heap_find(table->wait_heap, coder));
+	if (is_stopped(table))
+	{
+		pthread_mutex_unlock(&table->table_lock);
+		return (1);
+	}
+	coder->left_dongle->in_use = 1;
+	coder->right_dongle->in_use = 1;
+	pthread_mutex_unlock(&table->table_lock);
+	print_status(coder->table, TAKEN_DONGLE, coder->id);
+	return (0);
+}
+
+int	release_dongles(t_coder *coder)
+{
+	t_table	*table;
+	int			id;
+
+	id = coder->id;
+
+	table = coder->table;
+	pthread_mutex_lock(&table->table_lock);
+	coder->left_dongle->in_use = 0;
+	coder->left_dongle->available_at
+		= get_process_time(table) + table->dongle_cooldown;
+	coder->right_dongle->in_use = 0;
+	coder->right_dongle->available_at
+		= get_process_time(table) + table->dongle_cooldown;
+	signal_neighbours(table, id);
+	pthread_mutex_unlock(&table->table_lock);
+	return (0);
 }

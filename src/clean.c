@@ -12,22 +12,32 @@
 
 #include "codexion.h"
 
-void	free_heap(t_heap *hp)
+void	free_dongles(t_table *table)
 {
-	if (hp)
+	if (table->dongles)
+		free(table->dongles);
+}
+
+void	destroy_coders(t_table *table, int count)
+{
+	int	index;
+
+	index = 0;
+	while (index < count)
 	{
-		free(hp->requests);
-		free(hp);
+		pthread_mutex_destroy(&table->coders[index].lock);
+		pthread_cond_destroy(&table->coders[index].cond);
+		index++;
 	}
 }
 
-void	clean_params(t_params *param)
+void	clean_table(t_table *table)
 {
-	if (param)
+	if (table)
 	{
-		pthread_mutex_destroy(&param->table_lock);
-		pthread_mutex_destroy(&param->stop_lock);
-		pthread_mutex_destroy(&param->print_lock);
-		free_heap(param->wait_heap);
+		pthread_mutex_destroy(&table->table_lock);
+		pthread_mutex_destroy(&table->stop_lock);
+		pthread_mutex_destroy(&table->print_lock);
+		heap_free(table->wait_heap);
 	}
 }

@@ -12,94 +12,74 @@
 
 #include "codexion.h"
 
-#define LIMIT 2
-
-
-
-void heap_push(t_heap *hp, t_heap_request req)
+void heap_push(t_heap *heap, t_heap_request req)
 {
     int tail_index;
     int parent_index;
 
-    if (heap_is_full(hp))
+    if (heap_is_full(heap))
         return;
-    hp->size++;
-    tail_index = hp->size - 1;
+    heap->size++;
+    tail_index = heap->size - 1;
     while (tail_index > 0)
     {
         parent_index = (tail_index - 1 ) / 2;
-        if (hp->requests[parent_index].key <= req.key) {
+        if (heap->requests[parent_index].key <= req.key) {
             break;
         }
-        hp->requests[tail_index] = hp->requests[parent_index];
+        heap->requests[tail_index] = heap->requests[parent_index];
         tail_index = parent_index;
     }
-    hp->requests[tail_index] = req;
+    heap->requests[tail_index] = req;
     return;
 }
 
-void schedule_heap(t_coder *coder)
+static void sift_down(t_heap *heap, int index)
 {
-    t_params *param;
-    t_heap_request req;
-    param = coder->param;
+    int child;
+    int right_child;
+    t_heap_request item = heap->requests[index];
 
-    if (param->scheduler == FIFO) {
-        req.key = param->seq;
-    } else {
-        req.key = coder->last_compile_start + param->time_to_burnout;
-    }
-    req.seq = param->seq++;
-    req.coder = coder;
-    heap_push(param->wait_heap, req);
-}
-
-void shift_down(t_heap *hp, int index)
-{
-    int child1;
-    int child2;
-    t_heap_request temp = hp->requests[index];
-
-    while (index * 2 + 1 < hp->size)
+    while (index * 2 + 1 < heap->size)
     {
-        child1 = index * 2 + 1;
-        child2 = index * 2 + 2;
-        if (child2 < hp->size
-            && hp->requests[child2].key < hp->requests[child1].key)
-            child1 = child2;
-        if (hp->requests[child1].key >= temp.key)
+        child = index * 2 + 1;
+        right_child = index * 2 + 2;
+        if (right_child < heap->size
+            && heap->requests[right_child].key < heap->requests[child].key)
+            child = right_child;
+        if (heap->requests[child].key >= item.key)
             break;
-        hp->requests[index] = hp->requests[child1];
-        index = child1;
+        heap->requests[index] = heap->requests[child];
+        index = child;
     }
-    hp->requests[index] = temp;
+    heap->requests[index] = item;
 }
 
-void shift_up(t_heap *hp, int index)
+static void sift_up(t_heap *heap, int index)
 {
     int parent;
-    t_heap_request temp;
+    t_heap_request item;
 
-    temp = hp->requests[index];
+    item = heap->requests[index];
     while (index > 0)
     {
         parent = (index - 1) / 2;
-        if (hp->requests[parent].key <= temp.key)
+        if (heap->requests[parent].key <= item.key)
             break;
-        hp->requests[index] = hp->requests[parent];
+        heap->requests[index] = heap->requests[parent];
         index = parent;
     }
-    hp->requests[index] = temp;
+    heap->requests[index] = item;
 }
 
-void heap_delete_at(t_heap *hp, int index)
+void heap_delete_at(t_heap *heap, int index)
 {
-    if (index < 0 || index >= hp->size)
+    if (index < 0 || index >= heap->size)
         return;
-    hp->requests[index] = hp->requests[hp->size - 1];
-    hp->size--;
-    if (hp->size == 0 || index == hp->size)
+    heap->requests[index] = heap->requests[heap->size - 1];
+    heap->size--;
+    if (heap->size == 0 || index == heap->size)
         return;
-    shift_down(hp, index);
-    shift_up(hp, index);
+    sift_down(heap, index);
+    sift_up(heap, index);
 }

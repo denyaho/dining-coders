@@ -14,99 +14,69 @@
 
 static int	check_burnout(t_coder *coder)
 {
-	t_params	*param;
+	t_table	*table;
 	long		last_compile_time;
 	long		burnout_time;
 
 	pthread_mutex_lock(&coder->lock);
 	last_compile_time = coder->last_compile_start;
-	param = coder->param;
-	burnout_time = param->time_to_burnout;
+	table = coder->table;
+	burnout_time = table->time_to_burnout;
 	pthread_mutex_unlock(&coder->lock);
 
-	if (last_compile_time + burnout_time < get_process_time(param))
+	if (last_compile_time + burnout_time < get_process_time(table))
 		return (1);
 	return (0);
 }
 
-int is_stopped(t_params *param)
-{
-	int	stopped;
-
-	pthread_mutex_lock(&param->stop_lock);
-	stopped = param->stopped;
-	pthread_mutex_unlock(&param->stop_lock);
-	return	stopped;
-}
-
-void set_stopped(t_params *param)
-{
-	t_coder		*coder;
-	int index;
-	
-	index = 0;
-	pthread_mutex_lock(&param->stop_lock);
-	param->stopped = 1;
-	pthread_mutex_unlock(&param->stop_lock);
-	
-	pthread_mutex_lock(&param->table_lock);
-	while (index < param->n_coders)
-	{
-		coder = &param->coders[index];
-		pthread_cond_signal(&coder->cond);
-		index++;
-	}
-	pthread_mutex_unlock(&param->table_lock);
-}
-
-static int all_compiled(t_params *param)
+static int all_compiled(t_table *table)
 {
 	int compile_count;
 	int index;
 	t_coder			*coder;
 
 	index = 0;
-	while (index < param->n_coders)
+	while (index < table->n_coders)
 	{
-		coder = &param->coders[index];
+		coder = &table->coders[index];
 		pthread_mutex_lock(&coder->lock);
 		compile_count = coder->compile_count;
 		pthread_mutex_unlock(&coder->lock);
-		if (compile_count < param->n_compiles_required)
+		if (compile_count < table->n_compiles_required)
 			return (0);
 		index++;
 	}
 	return (1);
 }
 
-void	*monitor_run(void *arg)
+void	*monitor_routine(void *arg)
 {
-	t_params		*param;
+	t_table		*table;
 	t_coder			*coder;
 	int 			index;
 
 	
-	param = (t_params *)arg;
-	coder = param->coders;
+	table = (t_table *)arg;
+	coder = table->coders;
 	index = 0;
 	while (1)
 	{
 		index = 0;
-		while (index < param->n_coders)
+		while (index < table->n_coders)
 		{
 			if (check_burnout(&coder[index]))
 			{
-				print_status(param, BURNED_OUT, coder[index].id);
-				set_stopped(param);
+				print_status(table, BURNED_OUT, coder[index].id);
+				set_stopped(table);
 				return NULL;
 			}
 			index++;
 		}
-		if (all_compiled(param))
+		if (all_compiled(table))
 		{
-			set_stopped(param);
+			set_stopped(table);
 			return NULL;
 		}
-		ft_usleep(1, param); // Sleep for 1 millisecond to prevent busy waiting
+		ft_usleep(1, table); // Sleep for 1 millisecond to prevent busy waiting
 	}
 }

@@ -12,55 +12,54 @@
 
 #include "codexion.h"
 
-void fail_thread_creation(t_params *param, int i)
+static void join_created_coders(t_table *table, int n_created)
 {
 	int index;
 
-	set_stopped(param);
+	set_stopped(table);
 	index = 0;
-	while (index < i)
+	while (index < n_created)
 	{
-		pthread_join(param->coders[index].thread, NULL);
+		pthread_join(table->coders[index].thread, NULL);
 		index++;
 	}
 }
 
-
-int	run_simulate(t_params *param)
+int	run_simulation(t_table *table)
 {
 	int			index;
 	pthread_t	monitor_thread;
 
-	if (init_dongles(param) != 0)
+	if (init_dongles(table) != 0)
 		return (1);
-	if (init_coders(param) != 0)
+	if (init_coders(table) != 0)
 	{
-		free(param->dongles);
+		free(table->dongles);
 		return (1);
 	}
 	index = 0;
-	while (index < param->n_coders)
+	while (index < table->n_coders)
 	{
-		if (pthread_create(&param->coders[index].thread, NULL, coder_run,
-			&param->coders[index]) != 0)
+		if (pthread_create(&table->coders[index].thread, NULL, coder_routine,
+			&table->coders[index]) != 0)
 			{
-				param->thread_create_count = index;
-				fail_thread_creation(param, index);
+				table->thread_create_count = index;
+				join_created_coders(table, index);
 				return (1);
 			}
 		index++;
 	}
 	if (pthread_create(&monitor_thread, NULL,
-		monitor_run, param) != 0)
+		monitor_routine, table) != 0)
 		{
-			fail_thread_creation(param, param->n_coders);
+			join_created_coders(table, table->n_coders);
 			return (1);
 		}
 	pthread_join(monitor_thread, NULL);
 	index = 0;
-	while (index < param->n_coders)
+	while (index < table->n_coders)
 	{
-		if (pthread_join(param->coders[index].thread, NULL))
+		if (pthread_join(table->coders[index].thread, NULL))
             return (0);
 		index++;
 	}	

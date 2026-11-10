@@ -1,50 +1,71 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   heap_utils.c                                       :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: daogawa <daogawa@student.42tokyo.jp>       +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2026/10/04 03:24:42 by daogawa           #+#    #+#             */
+/*   Updated: 2026/10/04 03:49:38 by daogawa          ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "codexion.h"
 
-bool heap_is_full(t_heap *hp)
+t_heap *heap_create(int n)
 {
-    if (hp->size == hp->limit)
+    t_heap *heap = malloc(sizeof(t_heap));
+    if (heap != NULL)
+    {
+        heap->size = 0;
+        heap->capacity = n;
+        heap->requests = malloc(sizeof(t_heap_request) * n);
+        if (heap->requests == NULL)
+        {
+            free(heap);
+            return NULL;
+        }
+    }
+    return heap;
+}
+
+void	heap_free(t_heap *heap)
+{
+	if (heap)
+	{
+		free(heap->requests);
+		free(heap);
+	}
+}
+
+bool heap_is_full(t_heap *heap)
+{
+    if (heap->size == heap->capacity)
     {
         return true;
     }
     return false;
 }
 
-bool heap_is_empty(t_heap *hp)
+bool heap_is_empty(t_heap *heap)
 {
-    if (hp->size == 0)
+    if (heap->size == 0)
     {
         return true;
     }
     return false;
 }
 
-int find_heap(t_heap *hp, t_coder *coder)
+int heap_find(t_heap *heap, t_coder *coder)
 {
     int index;
 
     index = 0;
-    while (index < hp->size)
+    while (index < heap->size)
     {
-        if (hp->requests[index].coder == coder)
+        if (heap->requests[index].coder == coder)
             return index;
         index++;
     }
     return -1; // or some other error value
-}
-
-t_heap *make_heap(int n)
-{
-    t_heap *hp = malloc(sizeof(t_heap));
-    if (hp != NULL)
-    {
-        hp->size = 0;
-        hp->limit = n;
-        hp->requests = malloc(sizeof(t_heap_request) * n);
-        if (hp->requests == NULL)
-        {
-            free(hp);
-            return NULL;
-        }
-    }
-    return hp;
 }

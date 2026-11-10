@@ -5,20 +5,22 @@ CFLAGS = -Wall -Wextra -Werror -pthread
 
 INCLUDES = -I includes
 
-SRCS = src/coder_routine.c \
-src/monitor.c \
-src/main.c \
-src/coders.c \
-src/dongle.c \
-src/heap.c \
+SRCS = src/main.c \
 src/parse.c \
-src/simulate.c \
-src/time.c \
-src/print.c \
-src/sleep.c \
+src/init.c \
+src/init_coders.c \
 src/clean.c \
-src/operation.c \
-src/heap_utils.c
+src/simulate.c \
+src/coder_routine.c \
+src/monitor.c \
+src/actions.c \
+src/dongle.c \
+src/scheduler.c \
+src/heap.c \
+src/heap_utils.c \
+src/stop.c \
+src/print.c \
+src/time.c
 
 
 OBJS = $(SRCS:.c=.o)

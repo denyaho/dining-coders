@@ -19,7 +19,7 @@
 #include <pthread.h>
 #include <time.h>
 
-typedef struct s_params t_params;
+typedef struct s_table t_table;
 typedef struct s_dongle t_dongle;
 typedef struct s_coder t_coder;
 
@@ -43,7 +43,7 @@ typedef struct s_dongle
 	int				id;
 	int				in_use; //0 -> not in use 1 -> in use
 	long			available_at;
-	t_params		*param;
+	t_table		*table;
 
 }	t_dongle;
 // avaiable_at and in_use are mutex protected
@@ -59,7 +59,7 @@ typedef struct s_coder
 	pthread_t		thread;
 	pthread_cond_t	cond;
 
-	t_params		*param;
+	t_table		*table;
 }	t_coder;
 
 typedef struct s_heap_request
@@ -72,11 +72,11 @@ typedef struct s_heap_request
 typedef struct s_heap
 {
     int size;
-    int limit;
+    int capacity;
 	t_heap_request *requests;
 }	t_heap;
 
-typedef struct s_params
+typedef struct s_table
 {
 	int				n_coders;
 	long			time_to_burnout;
@@ -86,7 +86,7 @@ typedef struct s_params
 	int				n_compiles_required;
 	long			dongle_cooldown;
 	int				stopped;
-	int				seq;
+	int				next_seq;
 	long			start_time;
 	int				thread_create_count;
 
@@ -97,45 +97,62 @@ typedef struct s_params
 	t_scheduler		scheduler;
 	t_dongle		*dongles;
 	t_coder			*coders;
-}	t_params;
+}	t_table;
 
 
-typedef struct s_timespec
-{
-	time_t	tv_sec;
-	long	tv_nsec;
-}	t_timespec;
+/* parse.c */
+int				parse_arg(int argc, char **argv, t_table *table);
 
-int	parse_arg(int argc, char **argv, t_params *p);
-int		init_dongles(t_params *param);
-void	free_dongles(t_params *param);
-void	destroy_coders(t_params *param, int count);
-int		init_coders(t_params *param);
-int		run_simulate(t_params *param);
-void	*coder_run(void *arg);
-void	*monitor_run(void *arg);
-t_heap_request heap_top(t_heap *hp);
-int find_heap(t_heap *hp, t_coder *coder);
-void schedule_heap(t_coder *coder);
-bool heap_pop(t_heap *hp);
-int is_stopped(t_params *param);
-long long get_process_time(t_params *param);
-long long get_current_time();
-t_heap *make_heap(int n);
-void print_status(t_params *param, t_print_status status, int coder_id);
-struct timespec *get_shorter_cooldown_dongle(struct timespec *ts, t_coder *coder);
-void heap_delete_at(t_heap *hp, int index);
-void ft_usleep(long duration_sleep, t_params *params);
-void clean_params(t_params *param);
-void    free_heap(t_heap *hp);
-void set_stopped(t_params *param);
-void do_refactor(t_coder *coder);
-void do_compile(t_coder *coder);
-void do_debug(t_coder *coder);
-int get_dongle(t_coder *coder);
-int release_dongle(t_coder *coder);
-bool heap_is_full(t_heap *hp);
-void signal_to_adjacent_coder(t_params *param, int id);
-int is_top(t_coder *coder);
-bool is_available_dongle(t_coder *coder);
-bool is_used_dongle(t_coder *coder);
+/* init.c / init_coders.c */
+int				init_table(t_table *table);
+int				init_dongles(t_table *table);
+int				init_coders(t_table *table);
+
+/* clean.c */
+void			free_dongles(t_table *table);
+void			destroy_coders(t_table *table, int count);
+void			clean_table(t_table *table);
+
+/* simulate.c / coder_routine.c / monitor.c */
+int				run_simulation(t_table *table);
+void			*coder_routine(void *arg);
+void			*monitor_routine(void *arg);
+
+/* actions.c */
+void			do_compile(t_coder *coder);
+void			do_debug(t_coder *coder);
+void			do_refactor(t_coder *coder);
+
+/* dongle.c */
+bool			dongles_in_use(t_coder *coder);
+bool			dongles_cooled_down(t_coder *coder);
+void			signal_neighbours(t_table *table, int id);
+int				take_dongles(t_coder *coder);
+int				release_dongles(t_coder *coder);
+
+/* scheduler.c */
+void			enqueue_request(t_coder *coder);
+int				has_priority(t_coder *coder);
+
+/* heap.c / heap_utils.c */
+void			heap_push(t_heap *heap, t_heap_request req);
+void			heap_delete_at(t_heap *heap, int index);
+t_heap			*heap_create(int n);
+void			heap_free(t_heap *heap);
+bool			heap_is_full(t_heap *heap);
+bool			heap_is_empty(t_heap *heap);
+int				heap_find(t_heap *heap, t_coder *coder);
+
+/* stop.c */
+int				is_stopped(t_table *table);
+void			set_stopped(t_table *table);
+
+/* print.c */
+void			print_status(t_table *table, t_print_status status,
+					int coder_id);
+
+/* time.c */
+long long		get_current_time(void);
+long long		get_process_time(t_table *table);
+struct timespec	*get_dongles_ready_time(struct timespec *ts, t_coder *coder);
+void			ft_usleep(long duration_ms, t_table *table);

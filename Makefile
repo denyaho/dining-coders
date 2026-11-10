@@ -17,6 +17,8 @@ src/time.c \
 src/print.c \
 src/sleep.c \
 src/clean.c \
+src/operation.c \
+src/heap_utils.c
 
 
 OBJS = $(SRCS:.c=.o)
